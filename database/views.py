@@ -22,4 +22,10 @@ class school(APIView):
         else:
             return HttpResponse('Already Exist')
 
+    def get(self, request):
         
+        params = json.loads(request.body)
+        try:
+            school = School.objects.get(name = params['name'])
+        except School.DoesNotExist:
+            HttpResponse('school not there')
