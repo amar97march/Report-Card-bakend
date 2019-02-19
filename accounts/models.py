@@ -6,7 +6,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import ugettext_lazy as _
 
-from .managers import UserManager
+#from .managers import UserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -26,7 +26,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_('active'), default=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
-    objects = UserManager()
+    #objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

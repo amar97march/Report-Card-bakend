@@ -44,7 +44,7 @@ class signUp(APIView):
         try:
             user = User.objects.get(email = params['email'],password = params['password'])
         except User.DoesNotExist:
-            HttpResponse('user not exist')
+            HttpResponse('user not exist')  
 
         
 

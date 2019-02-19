@@ -2,16 +2,20 @@ from __future__ import unicode_literals
 from django.db import models
 from .utils import IntegerRangeField
 import json
-from django.core.validators import MaxValueValidator, MinValueValidator
+from datetime import datetime, date
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from dateutil.relativedelta import relativedelta
 
 class School(models.Model):
     name = models.CharField(max_length = 300, blank = False)
+    principal = models.CharField(max_length = 300, default = 'Not provided')
     established_date = models.DateTimeField('Establishment Date')
-    school_id = models.IntegerField(max_length=20)
+    address = models.CharField(max_length = 500, default = 'Not provided')
+    school_id = models.CharField(unique = True, max_length=10, validators=[RegexValidator(r'^\d{1,10}$')])
     def __str__(self):
         return self.name
     
-    def get_date():
+    def get_date():  
         return self.established_date
 
     def get_id():
@@ -21,13 +25,27 @@ class School(models.Model):
         response_data = {}
         response_data['name'] = self.name
         response_data['established_date'] = self.established_date
+        response_data['principal'] = self.principal
         response_data['school_id'] = self.school_id
+        response_data['address'] = self.address
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 class Teacher(models.Model):
-    teacher_name = models.CharField(max_length = 200, blank = False)
-    appointed_date = models.DateTimeField('appointed date', blank = False)
 
+    GENDER = (
+    ("M", "Male"),
+    ("F", "Female"),
+    ("O", "Other"),
+    )
+
+    teacher_name = models.CharField(max_length = 200, blank = False)
+    domain = models.CharField(max_length = 300)
+    appointed_date = models.DateTimeField('appointed date', blank = False)
+    gender = models.CharField(max_length = 2, choices = GENDER, blank = False)
+
+    def exp(self):
+        return (datetime.now() - appointed_date).year
+    
     def __str__(self):
         return self.teacher_name
 
@@ -37,7 +55,10 @@ class Teacher(models.Model):
     def json(self):
         response_data = {}
         response_data['teacher_name'] = self.teacher_name
+        response_data['domain'] = self.domain
         response_data['appointed_date'] = self.appointed_date
+        response_data['exp'] = self.exp
+        response_data['gender'] = self.gender
         return HttpResponse(json.dumps(response_data), content_type="application/json")
         
 
@@ -62,6 +83,8 @@ class Standard(models.Model):
     class_teacher = models.ForeignKey(Teacher, on_delete= models.CASCADE)
     school = models.ForeignKey(School, on_delete= models.CASCADE)
 
+    
+
     def __str__(self):
         return self.div
 
@@ -77,13 +100,20 @@ class Standard(models.Model):
 
 class Student(models.Model):
     first_name = models.CharField(max_length = 100, blank = False)
-    student_id = models.IntegerField(max_length= 15, blank = False)
+    student_id = models.CharField(unique = True, max_length=10, validators=[RegexValidator(r'^\d{1,10}$')])
     last_name = models.CharField(max_length = 50)
+    dob = models.DateField(max_length = 8, null = True)
     father_name = models.CharField(max_length = 100, blank = True)
     standard = models.ForeignKey(Standard, on_delete= models.CASCADE)
+    address = models.CharField(max_length = 500, default = 'Not provided')
 
     def __str__(self):
         return str(self.first_name + " " + self.last_name)
+
+
+       
+    def age(self):
+        return relativedelta(date.today(), self.dob)
 
     def json(self):
         response_data = {}
@@ -97,6 +127,7 @@ class Student(models.Model):
 class ReportCard(models.Model):
     student = models.ForeignKey(Student)
     year = models.IntegerField(validators=[MinValueValidator(2006), MaxValueValidator(2018)])
+    remarks = models.CharField(max_length = 300,blank = True)
     marks_in_maths = models.IntegerField(default= -1, validators=[MinValueValidator(0), MaxValueValidator(100)])
     marks_in_english = models.IntegerField(default= -1, validators=[MinValueValidator(0), MaxValueValidator(100)])
     marks_in_hindi = models.IntegerField(default= -1, validators=[MinValueValidator(0), MaxValueValidator(100)])
