@@ -151,7 +151,8 @@ class ReportCard(models.Model):
         response_data['student'] = self.student
         response_data['year'] = self.year
         response_data['remarks'] = self.remarks
-        response_data['maths'] = self.age
-        response_data['student_id'] = self.student_id
-        response_data['standard'] = self.standard
+        response_data['maths'] = self.marks_in_maths
+        response_data['english'] = self.marks_in_english
+        response_data['science'] = self.marks_in_science
+        response_data['social'] = self.marks_in_social
         return response_data
