@@ -5,6 +5,7 @@ import json
 from datetime import datetime, date
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from dateutil.relativedelta import relativedelta
+from django.http import HttpResponse
 
 class School(models.Model):
     name = models.CharField(max_length = 300, blank = False)
@@ -24,11 +25,11 @@ class School(models.Model):
     def json(self):
         response_data = {}
         response_data['name'] = self.name
-        response_data['established_date'] = self.established_date
         response_data['principal'] = self.principal
+        response_data['established_date'] = self.established_date
         response_data['school_id'] = self.school_id
         response_data['address'] = self.address
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+        return response_data
 
 class Teacher(models.Model):
 
@@ -39,9 +40,11 @@ class Teacher(models.Model):
     )
 
     teacher_name = models.CharField(max_length = 200, blank = False)
-    domain = models.CharField(max_length = 300)
+    staff_id = models.IntegerField(primary_key = True)
+    domain = models.CharField(max_length = 300, default = 'Not provided')
     appointed_date = models.DateTimeField('appointed date', blank = False)
-    gender = models.CharField(max_length = 2, choices = GENDER, blank = False)
+    gender = models.CharField(max_length = 2, choices = GENDER, null = True)
+    school = models.ForeignKey(School, on_delete= models.CASCADE, null = True)
 
     def exp(self):
         return (datetime.now() - appointed_date).year
@@ -59,7 +62,7 @@ class Teacher(models.Model):
         response_data['appointed_date'] = self.appointed_date
         response_data['exp'] = self.exp
         response_data['gender'] = self.gender
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+        return response_data
         
 
 class Standard(models.Model):
@@ -96,11 +99,11 @@ class Standard(models.Model):
         response_data['div'] = self.div
         response_data['class_teacher'] = self.class_teacher
         response_data['school'] = self.school
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+        return response_data
 
 class Student(models.Model):
     first_name = models.CharField(max_length = 100, blank = False)
-    student_id = models.CharField(unique = True, max_length=10, validators=[RegexValidator(r'^\d{1,10}$')])
+    student_id = models.AutoField(primary_key = True)
     last_name = models.CharField(max_length = 50)
     dob = models.DateField(max_length = 8, null = True)
     father_name = models.CharField(max_length = 100, blank = True)
@@ -111,7 +114,7 @@ class Student(models.Model):
         return str(self.first_name + " " + self.last_name)
 
 
-       
+
     def age(self):
         return relativedelta(date.today(), self.dob)
 
@@ -120,9 +123,10 @@ class Student(models.Model):
         response_data['first_name'] = self.first_name
         response_data['last_name'] = self.last_name
         response_data['father_name'] = self.father_name
+        response_data['age'] = self.age
         response_data['student_id'] = self.student_id
         response_data['standard'] = self.standard
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+        return response_data
 
 class ReportCard(models.Model):
     student = models.ForeignKey(Student)
@@ -141,3 +145,13 @@ class ReportCard(models.Model):
         total = self.marks_in_english + self.marks_in_hindi + self.marks_in_maths + self.marks_in_science + self.marks_in_social
         percent = (total/500)*100
         return percent
+
+    def json(self):
+        response_data = {}
+        response_data['student'] = self.student
+        response_data['year'] = self.year
+        response_data['remarks'] = self.remarks
+        response_data['maths'] = self.age
+        response_data['student_id'] = self.student_id
+        response_data['standard'] = self.standard
+        return response_data

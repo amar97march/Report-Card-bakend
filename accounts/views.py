@@ -27,6 +27,7 @@ class signUp(APIView):
     def post(request):
         params = json.loads(request.body)
 
+
         avataar = request.data['avataar']
         #email, user_type, first_name, last_name, date_joined, is_active,_avataar
         user = User.objects.filter(email = params['email'])
