@@ -5,16 +5,19 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.serializers.json import DjangoJSONEncoder
-from .models import School, Teacher, Standard, Student
-
+from .models import School, Teacher, Standard, Student, ReportCard
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 
 # Create your views here.
+
 class SchoolApi(APIView):
     
+    @csrf_protect
     def post(self,request):
 
         params = json.loads(request.body)
-        
+    
         school = [i.json() for i in School.objects.filter(name = params['name'])]
         if not school:
             school = School(name = params['name'], established_date = params['established_date'], school_id = params['school_id'], address = params['address'],principal = params['principal'])
@@ -22,6 +25,7 @@ class SchoolApi(APIView):
         else:
             return HttpResponse('Already Exist')
 
+    @csrf_protect
     def get(self, request,school_id):
         
         params = json.loads(request.body)
@@ -34,6 +38,7 @@ class SchoolApi(APIView):
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
+    @csrf_protect
     def put(self, request):
         params = json.loads(request.body)
         try:
@@ -49,23 +54,24 @@ class SchoolApi(APIView):
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
+    @csrf_protect
     def delete(self, request,school_id):
         try:
             school = School.objects.get(school_id = school_id)
         except:
-            HttpResponse('school not there')
+            return HttpResponse('school not there')
 
         school.delete()
 
-        HttpResponse('School ('+ school_id+ ') removed')
+        return HttpResponse('School ('+ school_id+ ') removed')
 
 class TeacherApi(APIView):
 
-    def post(self,request,school_id):
+    def post(self, request):
         params = json.loads(request.body)
 
         try:
-            school = School.objects.get(school_id = school_id)
+            school = School.objects.get(school_id = params['school_id'])
         except School.DoesNotExist:
             HttpResponse('school not there')
 
@@ -85,17 +91,18 @@ class TeacherApi(APIView):
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-    def put(self, request, id):
+    def put(self, request):
 
         params = json.loads(request.body)
 
         try:
-            teacher = Teacher.objects.get(staff_id = id)
+            teacher = Teacher.objects.get(staff_id = params['id'])
         except:
             HttpResponse('Staff not found')
 
         teacher.domain = params['domain']
         teacher.save()
+        return HttpResponse('Changes done to staff id '+ id)
 
     def delete(self, request,id):
         
@@ -115,12 +122,12 @@ class StandardApi(APIView):
         params = json.loads(request.body)
 
         try:
-            school = School.objects.get(school_id = school_id)
+            school = School.objects.get(school_id = params['school_id'])
         except School.DoesNotExist:
             HttpResponse('school not there')
         
         try:
-            teacher = Teacher.objects.get(teacher_id = id)
+            teacher = Teacher.objects.get(teacher_id = params['teacher_id'])
         except:
             HttpResponse('Teacher not there')
         
@@ -133,10 +140,10 @@ class StandardApi(APIView):
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-    def get(self, request):
+    def get(self, request, div):
         
         try:
-            standard = [i.json() for i in Standard.objects.all()]
+            standard = Standard.objects.get(div = params['div'])
         except Standard.DoesNotExist:
             HttpResponse('No standard exist')
 
@@ -152,7 +159,7 @@ class StandardApi(APIView):
             HttpResponse('school not there')
 
         try:
-            standard = Standard.objects.get(div = params[div,]school = school)
+            standard = Standard.objects.get(div = params['div'], school = school)
         except:
             HttpResponse('standard not there')
 
@@ -166,7 +173,7 @@ class StudentApi(APIView):
         params = json.loads(request.body)
 
         try:
-            standard = [i.json() for i in Standard.objects.all()]
+            standard = Standard.objects.get(div = params['div'])
         except Standard.DoesNotExist:
             HttpResponse('No standard exist')
 
@@ -195,7 +202,7 @@ class StudentApi(APIView):
         try:
             student = Student.objects.get(student_id = params['student_id'])
         except:
-            HttpResponse('Student id invalid')
+            HttpResponse('Student id is invalid')
 
         try:
             school = School.objects.get(school_id = params['school_id'])
@@ -222,4 +229,75 @@ class StudentApi(APIView):
             HttpResponse('Student id invalid')
 
         student.delete()
-        HttpResponse(id + 'th student deleted')
+        return HttpResponse(id + 'th student deleted')
+
+class ReportCardApi(APIView):
+
+    def post(request):
+        params = json.loads(request.body)
+        
+        try:
+            student = Student.objects.get(student_id = params['student_id'])
+        except:
+            HttpResponse('Student id invalid')
+
+        try:
+            reportCard = ReportCard(student = student, year = params['year'], remarks = params['remarks'], marks_in_maths = params['maths'], marks_in_english = params['english'], marks_in_hindi = params['hindi'], marks_in_science = params['science'], marks_in_social = params['social'])
+        except:
+            return HttpResponse('Report Card not made')
+
+        response_data = reportCard.json()
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+    def get(request, student, year):
+        try:
+            student = Student.objects.get(student_id = params['student_id'])
+        except:
+            HttpResponse('Student id invalid')
+
+        try:
+            reportCard = ReportCard.objects.get(student = student, year = params['year'])
+        except:
+            return HttpResponse('Report card not there')
+
+        response_data = reportCard.json()
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+    def put(request):
+        params = json.loads(request.body)
+
+        try:
+            student = Student.objects.get(student_id = params['student_id'])
+        except:
+            HttpResponse('Student id invalid')
+
+        try:
+            reportCard = ReportCard.objects.get(student = student, year = params['year'])
+        except:
+            return HttpResponse('Report card not there')
+
+        reportCard.marks_in_maths = params['maths']
+        reportCard.marks_in_english = params['english']
+        reportCard.marks_in_hindi = params['hindi']
+        reportCard.marks_in_science = params['science']
+        reportCard.marks_in_social = params['social']
+        reportCard.remarks = params['remarks']
+        reportCard.save()
+
+        return HttpResponse('Changes made')
+
+    def delete(request):
+        params = json.loads(request.body)
+
+        try:
+            student = Student.objects.get(student_id = params['student_id'])
+        except:
+            HttpResponse('Student id invalid')
+
+        try:
+            reportCard = ReportCard.objetcs.get(student = student, year = params['year'])
+        except:
+            return HttpResponse('Report card not there')
+
+        reportCard.delete()
+        return HttpResponse(student+"'s " + params['year'] + " report card deleted")

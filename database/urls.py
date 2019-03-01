@@ -1,0 +1,10 @@
+from django.conf.urls import url, include
+from . import views
+
+
+urlpatterns = [
+    url('school', views.SchoolApi, name='school'),
+    url(r'^school/(?P<school_id>)$', views.SchoolApi),
+    
+
+]

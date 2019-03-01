@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.db import models
 from .utils import IntegerRangeField
 import json
+from django.utils import timezone
 from datetime import datetime, date
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from dateutil.relativedelta import relativedelta
@@ -15,11 +16,11 @@ class School(models.Model):
     school_id = models.CharField(unique = True, max_length=10, validators=[RegexValidator(r'^\d{1,10}$')])
     def __str__(self):
         return self.name
-    
-    def get_date():  
+
+    def get_date(self):
         return self.established_date
 
-    def get_id():
+    def get_id(self):
         return self.school_id
 
     def json(self):
@@ -47,7 +48,7 @@ class Teacher(models.Model):
     school = models.ForeignKey(School, on_delete= models.CASCADE, null = True)
 
     def exp(self):
-        return (datetime.now() - appointed_date).year
+        return (datetime.now() - self.appointed_date).year
     
     def __str__(self):
         return self.teacher_name
@@ -129,7 +130,7 @@ class Student(models.Model):
         return response_data
 
 class ReportCard(models.Model):
-    student = models.ForeignKey(Student)
+    student = models.ForeignKey(Student, on_delete = models.CASCADE)
     year = models.IntegerField(validators=[MinValueValidator(2006), MaxValueValidator(2018)])
     remarks = models.CharField(max_length = 300,blank = True)
     marks_in_maths = models.IntegerField(default= -1, validators=[MinValueValidator(0), MaxValueValidator(100)])
@@ -155,4 +156,5 @@ class ReportCard(models.Model):
         response_data['english'] = self.marks_in_english
         response_data['science'] = self.marks_in_science
         response_data['social'] = self.marks_in_social
+        response_data['percentage'] = self.percentile
         return response_data
