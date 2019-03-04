@@ -3,10 +3,11 @@ from django.db import models
 from .utils import IntegerRangeField
 import json
 from django.utils import timezone
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from dateutil.relativedelta import relativedelta
 from django.http import HttpResponse
+import dateutil.parser
 
 class School(models.Model):
     name = models.CharField(max_length = 300, blank = False)
@@ -48,20 +49,21 @@ class Teacher(models.Model):
     school = models.ForeignKey(School, on_delete= models.CASCADE, null = True)
 
     def exp(self):
-        return (datetime.now() - self.appointed_date).year
+        return (datetime.now() - self.appointed_date).year()
     
     def __str__(self):
         return self.teacher_name
 
     def recently_appointed(self):
-        return self.appointed_date >=  timezone.now() - datetime.timedelta(days = 30)
+        return (self.appointed_date >=  (timezone.now() - datetime.timedelta(days = 30)))
     
     def json(self):
         response_data = {}
         response_data['teacher_name'] = self.teacher_name
         response_data['domain'] = self.domain
-        response_data['appointed_date'] = self.appointed_date
-        response_data['exp'] = self.exp
+        response_data['appointed_date'] = str(self.appointed_date)
+        #response_data['recently_appointed'] = str(self.recently_appointed)
+        response_data['exp'] = str(self.exp)
         response_data['gender'] = self.gender
         return response_data
         
@@ -69,18 +71,18 @@ class Teacher(models.Model):
 class Standard(models.Model):
 
     STANDARD_CHOICES = (
-    ("I", "I"),
-    ("II", "II"),
-    ("III", "III"),
-    ("IV", "IV"),
-    ("V", "V"),
-    ("VI", "VI"),
-    ("VII", "VII"),
-    ("VIII", "VIII"),
-    ("IX", "IX"),
-    ("X", "X"),
-    ("XI", "XI"),
-    ("XII", "XII"),
+    (1, "I"),
+    (2, "II"),
+    (3, "III"),
+    (4, "IV"),
+    (5, "V"),
+    (6, "VI"),
+    (7, "VII"),
+    (8, "VIII"),
+    (9, "IX"),
+    (10, "X"),
+    (1, "XI"),
+    (12, "XII"),
     )
 
     div = models.CharField(max_length = 5, choices = STANDARD_CHOICES, blank = False)
@@ -98,13 +100,13 @@ class Standard(models.Model):
     def json(self):
         response_data = {}
         response_data['div'] = self.div
-        response_data['class_teacher'] = self.class_teacher
-        response_data['school'] = self.school
+        response_data['class_teacher'] = str(self.class_teacher)
+        response_data['school'] = str(self.school)
         return response_data
 
 class Student(models.Model):
     first_name = models.CharField(max_length = 100, blank = False)
-    student_id = models.AutoField(primary_key = True)
+    student_id = models.IntegerField(blank = False)
     last_name = models.CharField(max_length = 50)
     dob = models.DateField(max_length = 8, null = True)
     father_name = models.CharField(max_length = 100, blank = True)
@@ -124,9 +126,9 @@ class Student(models.Model):
         response_data['first_name'] = self.first_name
         response_data['last_name'] = self.last_name
         response_data['father_name'] = self.father_name
-        response_data['age'] = self.age
-        response_data['student_id'] = self.student_id
-        response_data['standard'] = self.standard
+        #response_data['age'] = self.age
+        #response_data['student_id'] = self.student_id
+        response_data['standard'] = str(self.standard)
         return response_data
 
 class ReportCard(models.Model):
