@@ -12,7 +12,7 @@ import dateutil.parser
 class School(models.Model):
     name = models.CharField(max_length = 300, blank = False)
     principal = models.CharField(max_length = 300, default = 'Not provided')
-    established_date = models.DateTimeField('Establishment Date')
+    established_date = models.DateField('Establishment Date')
     address = models.CharField(max_length = 500, default = 'Not provided')
     school_id = models.CharField(unique = True, max_length=10, validators=[RegexValidator(r'^\d{1,10}$')])
     def __str__(self):
@@ -44,26 +44,28 @@ class Teacher(models.Model):
     teacher_name = models.CharField(max_length = 200, blank = False)
     staff_id = models.IntegerField(primary_key = True)
     domain = models.CharField(max_length = 300, default = 'Not provided')
-    appointed_date = models.DateTimeField('appointed date', blank = False)
+    appointed_date = models.DateField('appointed date', blank = False)
     gender = models.CharField(max_length = 2, choices = GENDER, null = True)
     school = models.ForeignKey(School, on_delete= models.CASCADE, null = True)
 
     def exp(self):
-        return (datetime.now() - self.appointed_date).year()
+        exp = date.today() - self.appointed_date
+        return exp.days/365
     
     def __str__(self):
         return self.teacher_name
 
     def recently_appointed(self):
-        return (self.appointed_date >=  (timezone.now() - datetime.timedelta(days = 30)))
+        return self.appointed_date >=  date.today() - timedelta(days = 30)
     
     def json(self):
         response_data = {}
         response_data['teacher_name'] = self.teacher_name
+        response_data['staff_id'] = self.staff_id
         response_data['domain'] = self.domain
         response_data['appointed_date'] = str(self.appointed_date)
-        #response_data['recently_appointed'] = str(self.recently_appointed)
-        response_data['exp'] = str(self.exp)
+        response_data['recently_appointed'] = self.recently_appointed()
+        response_data['exp'] = self.exp()
         response_data['gender'] = self.gender
         return response_data
         
@@ -126,7 +128,7 @@ class Student(models.Model):
         response_data['first_name'] = self.first_name
         response_data['last_name'] = self.last_name
         response_data['father_name'] = self.father_name
-        #response_data['age'] = self.age
+        #response_data['age'] = self.age()
         response_data['student_id'] = self.student_id
         response_data['standard'] = str(self.standard)
         response_data['address'] = self.address

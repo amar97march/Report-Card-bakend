@@ -25,7 +25,7 @@ class SchoolApi(APIView):
         school = [i.json() for i in School.objects.filter(school_id = params['school_id'])]
         if not school:
             try:
-                school = School(name = params['name'], established_date = parse_date(params['established_date']), school_id = params['school_id'], address = params['address'],principal = params['principal'])
+                school = School(name = params['name'], established_date = params['established_date'], school_id = params['school_id'], address = params['address'],principal = params['principal'])
                 school.save()
                 response_data = school.json()
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
@@ -86,11 +86,11 @@ class TeacherApi(APIView):
             return HttpResponse('Teacher already present. ID- '+ str(teacher.staff_id))
         except:
             try:
-                teacher = Teacher(teacher_name = params['teacher_name'], domain = params['domain'],appointed_date = parse_date(params['appointed_date']),gender = params['gender'], school = school)
+                teacher = Teacher(teacher_name = params['teacher_name'], domain = params['domain'],appointed_date = params['appointed_date'],gender = params['gender'], school = school)
                 teacher.save()
+                teacher = Teacher.objects.get(teacher_name = params['teacher_name'], domain = params['domain'],appointed_date = params['appointed_date'],gender = params['gender'], school = school)
                 
-                response_data = teacher.json()
-                return HttpResponse(json.dumps(response_data), content_type="application/json")
+                return HttpResponse('Staff id '+str(teacher.staff_id)+' created')
 
             except:
                 return HttpResponse('Teacher not created')
@@ -103,6 +103,7 @@ class TeacherApi(APIView):
         try:
             
             teacher = Teacher.objects.get(staff_id = staff_id)
+            
             response_data = teacher.json()
             
             return HttpResponse(json.dumps(response_data), content_type="application/json")
@@ -302,7 +303,7 @@ class ReportCardApi(APIView):
             student = Student.objects.get(student_id = params['student_id'])
             try:
                 print('gg')
-                reportCard = ReportCard.objects.filter(student = student, year = params['year'])
+                reportCard = ReportCard.objects.get(student = student, year = params['year'])
                 return HttpResponse('Report card already made')
             except:    
                 try:
@@ -314,14 +315,15 @@ class ReportCardApi(APIView):
                 except:
                     return HttpResponse('Report Card not made')
         except:
-            HttpResponse('Student id invalid')
+            return HttpResponse('Student id invalid')
 
-    def get(request, student, year):
+    def get(self,request, student_id, year):
         try:
-            student = Student.objects.get(student_id = params['student_id'])
+            student = Student.objects.get(student_id = student_id)
             try:
-                reportCard = ReportCard.objects.get(student = student, year = params['year'])
-                print('afasfg')
+                print(str(student_id)+ ' ' +str(year))
+                reportCard = ReportCard.objects.get(student = student, year = year)
+                print('sf')
                 response_data = reportCard.json()
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
             except:
@@ -349,24 +351,26 @@ class ReportCardApi(APIView):
             except:
                 return HttpResponse('Report card not there')
         except:
-            HttpResponse('Student id invalid')
+            return HttpResponse('Student id invalid')
 
         
 
         
 
-    def delete(request):
+    def delete(self, request):
         params = json.loads(request.body)
 
         try:
             student = Student.objects.get(student_id = params['student_id'])
+            try:
+                reportCard = ReportCard.objects.get(student = student, year = params['year'])
+                reportCard.delete()
+                return HttpResponse(str(student) + "'s " + str(params['year']) + " report card deleted")
+            except:
+                return HttpResponse('Report card not there')
         except:
-            HttpResponse('Student id invalid')
+            return HttpResponse('Student id invalid')
 
-        try:
-            reportCard = ReportCard.objetcs.get(student = student, year = params['year'])
-        except:
-            return HttpResponse('Report card not there')
+        
 
-        reportCard.delete()
-        return HttpResponse(student+"'s " + params['year'] + " report card deleted")
+        

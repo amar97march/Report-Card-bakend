@@ -12,6 +12,6 @@ urlpatterns = [
     url(r'^student/', views.StudentApi.as_view(), name='school'),
     url(r'^getstudent/(?P<student_id>[0-9]+)/$', views.StudentApi.as_view()),
     url(r'^reportcard/', views.ReportCardApi.as_view(), name='school'),
-    url(r'^getreportcard/(?P<school_id>[0-9]+)/$', views.ReportCardApi.as_view()),
+    url(r'^getreportcard/(?P<student_id>[0-9]+)/(?P<year>[0-9]+)/$', views.ReportCardApi.as_view()),
 
 ]
