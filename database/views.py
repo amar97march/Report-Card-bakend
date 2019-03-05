@@ -210,8 +210,14 @@ class StudentApi(APIView):
                     return HttpResponse('Student already registered')
                 except:
                     try:
+                        params['first_name'] = 'Amar'
+                        params['last_name'] = 'Singh'
+                        params['dob'] = '1997-03-26'
+                        params['father_name'] = 'shailesh'
+
                         student = Student(first_name = params['first_name'], last_name = params['last_name'],dob = parse_date(params['dob']),father_name = params['father_name'],standard = standard, address = params['address'],student_id= params['student_id'])
                         student.save()
+                        print('asfaf')
                         response_data = student.json()
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
                     except:
@@ -289,58 +295,65 @@ class StudentApi(APIView):
 
 class ReportCardApi(APIView):
 
-    def post(request):
+    def post(self,request):
         params = json.loads(request.body)
         
         try:
             student = Student.objects.get(student_id = params['student_id'])
+            try:
+                print('gg')
+                reportCard = ReportCard.objects.filter(student = student, year = params['year'])
+                return HttpResponse('Report card already made')
+            except:    
+                try:
+                    reportCard = ReportCard(student = student, year = params['year'], remarks = params['remarks'], marks_in_maths = params['maths'], marks_in_english = params['english'], marks_in_hindi = params['hindi'], marks_in_science = params['science'], marks_in_social = params['social'])
+                    reportCard.save()
+                    print('sf')
+                    response_data = reportCard.json()
+                    return HttpResponse(json.dumps(response_data), content_type="application/json")
+                except:
+                    return HttpResponse('Report Card not made')
         except:
             HttpResponse('Student id invalid')
-
-        try:
-            reportCard = ReportCard(student = student, year = params['year'], remarks = params['remarks'], marks_in_maths = params['maths'], marks_in_english = params['english'], marks_in_hindi = params['hindi'], marks_in_science = params['science'], marks_in_social = params['social']).save()
-        except:
-            return HttpResponse('Report Card not made')
-
-        response_data = reportCard.json()
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
 
     def get(request, student, year):
         try:
             student = Student.objects.get(student_id = params['student_id'])
+            try:
+                reportCard = ReportCard.objects.get(student = student, year = params['year'])
+                print('afasfg')
+                response_data = reportCard.json()
+                return HttpResponse(json.dumps(response_data), content_type="application/json")
+            except:
+                return HttpResponse('Report card not there')
         except:
             HttpResponse('Student id invalid')
 
-        try:
-            reportCard = ReportCard.objects.get(student = student, year = params['year'])
-        except:
-            return HttpResponse('Report card not there')
 
-        response_data = reportCard.json()
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-    def put(request):
+    def put(self,request):
         params = json.loads(request.body)
 
         try:
             student = Student.objects.get(student_id = params['student_id'])
+            try:
+                reportCard = ReportCard.objects.get(student = student, year = params['year'])
+                reportCard.marks_in_maths = params['maths']
+                reportCard.marks_in_english = params['english']
+                reportCard.marks_in_hindi = params['hindi']
+                reportCard.marks_in_science = params['science']
+                reportCard.marks_in_social = params['social']
+                reportCard.remarks = params['remarks']
+                reportCard.save()
+
+                return HttpResponse('Changes made')
+            except:
+                return HttpResponse('Report card not there')
         except:
             HttpResponse('Student id invalid')
 
-        try:
-            reportCard = ReportCard.objects.get(student = student, year = params['year'])
-        except:
-            return HttpResponse('Report card not there')
+        
 
-        reportCard.marks_in_maths = params['maths']
-        reportCard.marks_in_english = params['english']
-        reportCard.marks_in_hindi = params['hindi']
-        reportCard.marks_in_science = params['science']
-        reportCard.marks_in_social = params['social']
-        reportCard.remarks = params['remarks']
-        reportCard.save()
-
-        return HttpResponse('Changes made')
+        
 
     def delete(request):
         params = json.loads(request.body)

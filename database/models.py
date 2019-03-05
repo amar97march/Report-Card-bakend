@@ -82,7 +82,7 @@ class Standard(models.Model):
     (9, "IX"),
     (10, "X"),
     (1, "XI"),
-    (12, "XII"),
+    (12, "XII")
     )
 
     div = models.CharField(max_length = 5, choices = STANDARD_CHOICES, blank = False)
@@ -127,8 +127,9 @@ class Student(models.Model):
         response_data['last_name'] = self.last_name
         response_data['father_name'] = self.father_name
         #response_data['age'] = self.age
-        #response_data['student_id'] = self.student_id
+        response_data['student_id'] = self.student_id
         response_data['standard'] = str(self.standard)
+        response_data['address'] = self.address
         return response_data
 
 class ReportCard(models.Model):
@@ -142,7 +143,7 @@ class ReportCard(models.Model):
     marks_in_social = models.IntegerField(default= -1, validators=[MinValueValidator(0), MaxValueValidator(100)])
 
     def __str__(self):
-        return self.student
+        return str(str(self.student) + ' - Class:'+str(self.student.standard) + ' ' + str(self.year))
 
     def percentile(self):
         total = self.marks_in_english + self.marks_in_hindi + self.marks_in_maths + self.marks_in_science + self.marks_in_social
@@ -151,12 +152,13 @@ class ReportCard(models.Model):
 
     def json(self):
         response_data = {}
-        response_data['student'] = self.student
+        response_data['student'] = str(self.student)
         response_data['year'] = self.year
         response_data['remarks'] = self.remarks
         response_data['maths'] = self.marks_in_maths
         response_data['english'] = self.marks_in_english
+        response_data['hindi'] = self.marks_in_hindi
         response_data['science'] = self.marks_in_science
         response_data['social'] = self.marks_in_social
-        response_data['percentage'] = self.percentile
+        response_data['percentage'] = self.percentile()
         return response_data
