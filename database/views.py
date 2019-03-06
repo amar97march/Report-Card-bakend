@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
 from django.utils.dateparse import parse_date
-from .graphs import yearlyGraph
+from .graphs import yearlyGraph, progressGraph
 
 
 
@@ -138,7 +138,7 @@ class TeacherApi(APIView):
         
 
 class StandardApi(APIView):
-    
+
     def post(self, request):
 
         params = json.loads(request.body)
@@ -309,10 +309,25 @@ class ReportCardApi(APIView):
                     reportCard.save()
                     #Graph saving
                     marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
-                    plt = yearlyGraph(marks)
-                    print('before')
-                    plt.savefig('media/'+str(params['student_id'])+str(params['year'])+'.jpg',transparent = True,dpi = 300) 
-                    print('amar')
+                    plt1 = yearlyGraph(marks)
+                    
+                    plt1.savefig('media/'+str(params['student_id'])+str(params['year'])+'.jpg',transparent = True,dpi = 300) 
+                    
+                    #progress Graph saving
+                    reportCard1 = ReportCard.objects.filter(student = student)
+                    
+                    data = []
+                    year = []
+                    for i in reportCard1:
+                        year.append(i.year)
+                        temp = []
+                        temp.extend([i.marks_in_maths,i.marks_in_english,i.marks_in_hindi,i.marks_in_science,i.marks_in_social])
+                        data.append(temp)
+                    plt2, art = progressGraph(data,year)
+                    print('bf')
+                    plt2.savefig('media/'+str(params['student_id'])+'.jpg',transparent = True,dpi = 300,additional_artists=art,
+        bbox_inches="tight") 
+                    print('here')
                     response_data = reportCard.json()
                     return HttpResponse(json.dumps(response_data), content_type="application/json")
                 
@@ -351,10 +366,25 @@ class ReportCardApi(APIView):
                 reportCard.remarks = params['remarks']
                 reportCard.save()
 
-                #Graph saving
+                #acedmic Graph saving
                 marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
-                plt = yearlyGraph(marks)
-                plt.savefig('media/'+student_id+year+'.jpg',transparent = True,dpi = 300)
+                plt1 = yearlyGraph(marks)
+                plt1.savefig('media/'+student_id+year+'.jpg',transparent = True,dpi = 300)
+
+                #progress Graph saving
+                reportCard1 = ReportCard.objects.filter(student = student)
+            
+                data = []
+                year = []
+                for i in reportCard1:
+                    year.append(i.year)
+                    temp = []
+                    temp.extend([i.marks_in_maths,i.marks_in_english,i.marks_in_hindi,i.marks_in_science,i.marks_in_social])
+                    data.append(temp)
+                plt2, art = progressGraph(data,year)
+                
+                plt2.savefig('media/'+str(params['student_id'])+'.jpg',transparent = True,dpi = 300,additional_artists=art,
+    bbox_inches="tight") 
 
                 return HttpResponse('Changes made')
             except:
@@ -382,18 +412,25 @@ class ReportCardApi(APIView):
 
 class graphApi(APIView):
 
-    def get(self,request, student_id, year):
+    def get(self,request, student_id):
         try:
             student = Student.objects.get(student_id = student_id)
             try:
-                reportCard = ReportCard.objects.get(student = student, year = year)
-                marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
+                reportCard = ReportCard.objects.filter(student = student)
+            
+                data = []
+                year = []
+                for i in reportCard:
+                    year.append(i.year)
+                    temp = []
+                    temp.extend([i.marks_in_maths,i.marks_in_english,i.marks_in_hindi,i.marks_in_science,i.marks_in_social])
+                    data.append(temp)
+                plt, art = progressGraph(data,year)
                 
-                plt = yearlyGraph(marks)
-                plt.savefig('media/'+student_id+year+'.jpg',transparent = True,dpi = 300) 
-                return HttpResponse('graph done')
-                #response_data = reportCard.json()
-                #return HttpResponse(json.dumps(response_data), content_type="application/json")
+                plt.savefig('media/'+student_id+'.jpg',transparent = True,dpi = 300,additional_artists=art,
+    bbox_inches="tight") 
+                
+                
             
             except:
                 return HttpResponse('Report card not there')
