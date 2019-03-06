@@ -163,4 +163,5 @@ class ReportCard(models.Model):
         response_data['science'] = self.marks_in_science
         response_data['social'] = self.marks_in_social
         response_data['percentage'] = self.percentile()
+        response_data['graph'] = '/media/'+str(self.student.student_id)+str(self.year)+'.jpg'
         return response_data

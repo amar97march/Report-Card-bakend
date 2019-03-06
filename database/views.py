@@ -307,9 +307,15 @@ class ReportCardApi(APIView):
                 try:
                     reportCard = ReportCard(student = student, year = params['year'], remarks = params['remarks'], marks_in_maths = params['maths'], marks_in_english = params['english'], marks_in_hindi = params['hindi'], marks_in_science = params['science'], marks_in_social = params['social'])
                     reportCard.save()
-                    print('sf')
+                    #Graph saving
+                    marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
+                    plt = yearlyGraph(marks)
+                    print('before')
+                    plt.savefig('media/'+str(params['student_id'])+str(params['year'])+'.jpg',transparent = True,dpi = 300) 
+                    print('amar')
                     response_data = reportCard.json()
                     return HttpResponse(json.dumps(response_data), content_type="application/json")
+                
                 except:
                     return HttpResponse('Report Card not made')
         except:
@@ -345,6 +351,11 @@ class ReportCardApi(APIView):
                 reportCard.remarks = params['remarks']
                 reportCard.save()
 
+                #Graph saving
+                marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
+                plt = yearlyGraph(marks)
+                plt.savefig('media/'+student_id+year+'.jpg',transparent = True,dpi = 300)
+
                 return HttpResponse('Changes made')
             except:
                 return HttpResponse('Report card not there')
@@ -378,7 +389,8 @@ class graphApi(APIView):
                 reportCard = ReportCard.objects.get(student = student, year = year)
                 marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
                 
-                yearlyGraph(marks)
+                plt = yearlyGraph(marks)
+                plt.savefig('media/'+student_id+year+'.jpg',transparent = True,dpi = 300) 
                 return HttpResponse('graph done')
                 #response_data = reportCard.json()
                 #return HttpResponse(json.dumps(response_data), content_type="application/json")
