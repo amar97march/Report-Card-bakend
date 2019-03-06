@@ -1,16 +1,14 @@
 from __future__ import unicode_literals
-from django.shortcuts import render
 import json
 from rest_framework.views import APIView
 from django.http import HttpResponse
-from django.core.exceptions import MultipleObjectsReturned
-from django.core.serializers.json import DjangoJSONEncoder
 from .models import School, Teacher, Standard, Student, ReportCard
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils.dateparse import parse_date
+from .graphs import yearlyGraph
+
 
 
 # Create your views here.
@@ -371,6 +369,21 @@ class ReportCardApi(APIView):
         except:
             return HttpResponse('Student id invalid')
 
-        
+class graphApi(APIView):
 
-        
+    def get(self,request, student_id, year):
+        try:
+            student = Student.objects.get(student_id = student_id)
+            try:
+                reportCard = ReportCard.objects.get(student = student, year = year)
+                marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
+                
+                yearlyGraph(marks)
+                return HttpResponse('graph done')
+                #response_data = reportCard.json()
+                #return HttpResponse(json.dumps(response_data), content_type="application/json")
+            
+            except:
+                return HttpResponse('Report card not there')
+        except:
+            HttpResponse('Student id invalid')
