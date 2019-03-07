@@ -209,11 +209,7 @@ class StudentApi(APIView):
                     return HttpResponse('Student already registered')
                 except:
                     try:
-                        params['first_name'] = 'Amar'
-                        params['last_name'] = 'Singh'
-                        params['dob'] = '1997-03-26'
-                        params['father_name'] = 'shailesh'
-
+                        
                         student = Student(first_name = params['first_name'], last_name = params['last_name'],dob = parse_date(params['dob']),father_name = params['father_name'],standard = standard, address = params['address'],student_id= params['student_id'])
                         student.save()
                         print('asfaf')
@@ -330,6 +326,7 @@ class ReportCardApi(APIView):
                     print('bf')
                     plt2.savefig('media/'+str(params['student_id'])+'.jpg',transparent = True,dpi = 300,additional_artists=art,
         bbox_inches="tight") 
+                    plt.clf()
                     
                     response_data = reportCard.json()
                     return HttpResponse(json.dumps(response_data), content_type="application/json")
@@ -392,7 +389,8 @@ class ReportCardApi(APIView):
                 plt2, art = progressGraph(data,year)
                 
                 plt2.savefig('media/'+str(params['student_id'])+'.jpg',transparent = True,dpi = 300,additional_artists=art,
-    bbox_inches="tight") 
+    bbox_inches="tight")
+                plt.clf()
 
                 return HttpResponse('Changes made')
             except:
@@ -417,30 +415,3 @@ class ReportCardApi(APIView):
                 return HttpResponse('Report card not there')
         except:
             return HttpResponse('Student id invalid')
-
-class graphApi(APIView):
-
-    def get(self,request, student_id):
-        try:
-            student = Student.objects.get(student_id = student_id)
-            try:
-                reportCard = ReportCard.objects.filter(student = student)
-            
-                data = []
-                year = []
-                for i in reportCard:
-                    year.append(i.year)
-                    temp = []
-                    temp.extend([i.marks_in_maths,i.marks_in_english,i.marks_in_hindi,i.marks_in_science,i.marks_in_social])
-                    data.append(temp)
-                plt, art = progressGraph(data,year)
-                
-                plt.savefig('media/'+student_id+'.jpg',transparent = True,dpi = 300,additional_artists=art,
-    bbox_inches="tight") 
-                
-                
-            
-            except:
-                return HttpResponse('Report card not there')
-        except:
-            HttpResponse('Student id invalid')
