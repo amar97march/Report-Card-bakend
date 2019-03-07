@@ -156,6 +156,7 @@ class ReportCard(models.Model):
         response_data = {}
         response_data['student'] = str(self.student)
         response_data['year'] = self.year
+        response_data['standard'] = str(self.student.standard)
         response_data['remarks'] = self.remarks
         response_data['maths'] = self.marks_in_maths
         response_data['english'] = self.marks_in_english

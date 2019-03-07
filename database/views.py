@@ -312,22 +312,25 @@ class ReportCardApi(APIView):
                     plt1 = yearlyGraph(marks)
                     
                     plt1.savefig('media/'+str(params['student_id'])+str(params['year'])+'.jpg',transparent = True,dpi = 300) 
-                    
+                    plt1.clf()
                     #progress Graph saving
-                    reportCard1 = ReportCard.objects.filter(student = student)
-                    
-                    data = []
+                    reportCard1 = ReportCard.objects.filter(student = student).order_by('year')
+                    data = [[],[],[],[],[]]
                     year = []
+                    print('here2')
                     for i in reportCard1:
-                        year.append(i.year)
-                        temp = []
-                        temp.extend([i.marks_in_maths,i.marks_in_english,i.marks_in_hindi,i.marks_in_science,i.marks_in_social])
-                        data.append(temp)
+                        year.append(str(i.student.standard) + ' ' + str(i.year))
+                        data[0].append(i.marks_in_maths)
+                        data[1].append(i.marks_in_english)
+                        data[2].append(i.marks_in_hindi)
+                        data[3].append(i.marks_in_science)
+                        data[4].append(i.marks_in_social)
+                    
                     plt2, art = progressGraph(data,year)
                     print('bf')
                     plt2.savefig('media/'+str(params['student_id'])+'.jpg',transparent = True,dpi = 300,additional_artists=art,
         bbox_inches="tight") 
-                    print('here')
+                    
                     response_data = reportCard.json()
                     return HttpResponse(json.dumps(response_data), content_type="application/json")
                 
@@ -370,17 +373,22 @@ class ReportCardApi(APIView):
                 marks = [reportCard.marks_in_maths, reportCard.marks_in_english, reportCard.marks_in_hindi, reportCard.marks_in_science, reportCard.marks_in_social]
                 plt1 = yearlyGraph(marks)
                 plt1.savefig('media/'+student_id+year+'.jpg',transparent = True,dpi = 300)
-
+                plt.clf()
                 #progress Graph saving
                 reportCard1 = ReportCard.objects.filter(student = student)
-            
-                data = []
+                
+                data = [[],[],[],[],[]]
                 year = []
+
                 for i in reportCard1:
-                    year.append(i.year)
-                    temp = []
-                    temp.extend([i.marks_in_maths,i.marks_in_english,i.marks_in_hindi,i.marks_in_science,i.marks_in_social])
-                    data.append(temp)
+                    year.append(i.student.standard + ' ' + i.year)
+                    data[0].append(i.marks_in_maths)
+                    data[1].append(i.marks_in_english)
+                    data[2].append(i.marks_in_hindi)
+                    data[3].append(i.marks_in_science)
+                    data[4].append(i.marks_in_social)
+
+                
                 plt2, art = progressGraph(data,year)
                 
                 plt2.savefig('media/'+str(params['student_id'])+'.jpg',transparent = True,dpi = 300,additional_artists=art,
